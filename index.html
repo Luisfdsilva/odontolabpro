@@ -28,12 +28,19 @@
             div.style.color = 'white';
             div.style.zIndex = '9999';
             div.style.fontSize = '14px';
-            div.innerHTML = '<b>Erro Detectado:</b> ' + msg + '<br><small>Linha: ' + line + '</small>';
+            div.innerHTML = `
+                <b>Erro Detectado:</b> ${msg}<br>
+                <small>Linha: ${line}</small>
+                <p>Detalhes: ${error instanceof Error ? error.message : String(error)}</p>
+            `;
             document.body.appendChild(div);
             return false;
         };
     </script>
-    <div id="root"></div>
+    <div id="root" style="padding: 20px; font-family: sans-serif;">
+        <b>Iniciando sistema...</b> se esta mensagem não sumir em 5 segundos, o navegador não conseguiu carregar o
+        programa.
+    </div>
     <script type="module" src="/index.tsx"></script>
 </body>
 
