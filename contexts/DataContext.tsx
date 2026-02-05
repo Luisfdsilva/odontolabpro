@@ -1,6 +1,6 @@
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { supabase } from '../lib/supabase';
+import { getSupabase } from '../lib/supabase';
 import {
     Client, Service, Transaction, Task,
     ServiceDefinition, PaymentMethod, Invoice, CompanyInfo
@@ -78,14 +78,14 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 { data: invoicesData },
                 { data: companyData }
             ] = await Promise.all([
-                supabase.from('clients').select('*').order('name'),
-                supabase.from('services').select('*').order('entry_date', { ascending: false }),
-                supabase.from('transactions').select('*').order('date', { ascending: false }),
-                supabase.from('tasks').select('*').order('due_date'),
-                supabase.from('service_definitions').select('*').order('display_order'),
-                supabase.from('payment_methods').select('*').order('name'),
-                supabase.from('invoices').select('*').order('issue_date', { ascending: false }),
-                supabase.from('company_info').select('*').limit(1).maybeSingle()
+                getSupabase().from('clients').select('*').order('name'),
+                getSupabase().from('services').select('*').order('entry_date', { ascending: false }),
+                getSupabase().from('transactions').select('*').order('date', { ascending: false }),
+                getSupabase().from('tasks').select('*').order('due_date'),
+                getSupabase().from('service_definitions').select('*').order('display_order'),
+                getSupabase().from('payment_methods').select('*').order('name'),
+                getSupabase().from('invoices').select('*').order('issue_date', { ascending: false }),
+                getSupabase().from('company_info').select('*').limit(1).maybeSingle()
             ]);
 
             if (clientsData) setClients(clientsData.map(c => ({
@@ -192,25 +192,25 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     // Mutations
     const addClient = async (client: Omit<Client, 'id'>) => {
-        const { error } = await supabase.from('clients').insert(client);
+        const { error } = await getSupabase().from('clients').insert(client);
         if (error) throw error;
         await fetchData();
     };
 
     const updateClient = async (id: string, client: Partial<Client>) => {
-        const { error } = await supabase.from('clients').update(client).eq('id', id);
+        const { error } = await getSupabase().from('clients').update(client).eq('id', id);
         if (error) throw error;
         await fetchData();
     };
 
     const deleteClient = async (id: string) => {
-        const { error } = await supabase.from('clients').delete().eq('id', id);
+        const { error } = await getSupabase().from('clients').delete().eq('id', id);
         if (error) throw error;
         await fetchData();
     };
 
     const addService = async (service: Omit<Service, 'id'>) => {
-        const { error } = await supabase.from('services').insert({
+        const { error } = await getSupabase().from('services').insert({
             client_name: service.clientName,
             patient_name: service.patientName,
             type: service.type,
@@ -245,19 +245,19 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (service.paymentMethodId !== undefined) dbData.payment_method_id = service.paymentMethodId;
         if (service.observations !== undefined) dbData.observations = service.observations;
 
-        const { error } = await supabase.from('services').update(dbData).eq('id', id);
+        const { error } = await getSupabase().from('services').update(dbData).eq('id', id);
         if (error) throw error;
         await fetchData();
     };
 
     const deleteService = async (id: string) => {
-        const { error } = await supabase.from('services').delete().eq('id', id);
+        const { error } = await getSupabase().from('services').delete().eq('id', id);
         if (error) throw error;
         await fetchData();
     };
 
     const addTransaction = async (transaction: Omit<Transaction, 'id'>) => {
-        const { error } = await supabase.from('transactions').insert({
+        const { error } = await getSupabase().from('transactions').insert({
             description: transaction.description,
             type: transaction.type,
             amount: transaction.amount,
@@ -282,19 +282,19 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (transaction.serviceId !== undefined) dbData.service_id = transaction.serviceId;
         if (transaction.paymentMethodId !== undefined) dbData.payment_method_id = transaction.paymentMethodId;
 
-        const { error } = await supabase.from('transactions').update(dbData).eq('id', id);
+        const { error } = await getSupabase().from('transactions').update(dbData).eq('id', id);
         if (error) throw error;
         await fetchData();
     };
 
     const deleteTransaction = async (id: string) => {
-        const { error } = await supabase.from('transactions').delete().eq('id', id);
+        const { error } = await getSupabase().from('transactions').delete().eq('id', id);
         if (error) throw error;
         await fetchData();
     };
 
     const addTask = async (task: Omit<Task, 'id'>) => {
-        const { error } = await supabase.from('tasks').insert({
+        const { error } = await getSupabase().from('tasks').insert({
             title: task.title,
             description: task.description,
             priority: task.priority,
@@ -315,37 +315,37 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (task.dueDate) dbData.due_date = task.dueDate;
         if (task.assignedTo !== undefined) dbData.assigned_to = task.assignedTo;
 
-        const { error } = await supabase.from('tasks').update(dbData).eq('id', id);
+        const { error } = await getSupabase().from('tasks').update(dbData).eq('id', id);
         if (error) throw error;
         await fetchData();
     };
 
     const deleteTask = async (id: string) => {
-        const { error } = await supabase.from('tasks').delete().eq('id', id);
+        const { error } = await getSupabase().from('tasks').delete().eq('id', id);
         if (error) throw error;
         await fetchData();
     };
 
     const addPaymentMethod = async (method: Omit<PaymentMethod, 'id'>) => {
-        const { error } = await supabase.from('payment_methods').insert(method);
+        const { error } = await getSupabase().from('payment_methods').insert(method);
         if (error) throw error;
         await fetchData();
     };
 
     const updatePaymentMethod = async (id: string, method: Partial<PaymentMethod>) => {
-        const { error } = await supabase.from('payment_methods').update(method).eq('id', id);
+        const { error } = await getSupabase().from('payment_methods').update(method).eq('id', id);
         if (error) throw error;
         await fetchData();
     };
 
     const deletePaymentMethod = async (id: string) => {
-        const { error } = await supabase.from('payment_methods').delete().eq('id', id);
+        const { error } = await getSupabase().from('payment_methods').delete().eq('id', id);
         if (error) throw error;
         await fetchData();
     };
 
     const addServiceDefinition = async (definition: Omit<ServiceDefinition, 'id'>) => {
-        const { error } = await supabase.from('service_definitions').insert({
+        const { error } = await getSupabase().from('service_definitions').insert({
             code: definition.code,
             name: definition.name,
             base_price: definition.basePrice,
@@ -364,13 +364,13 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (definition.category) dbData.category = definition.category;
         if (definition.order !== undefined) dbData.display_order = definition.order;
 
-        const { error } = await supabase.from('service_definitions').update(dbData).eq('id', id);
+        const { error } = await getSupabase().from('service_definitions').update(dbData).eq('id', id);
         if (error) throw error;
         await fetchData();
     };
 
     const deleteServiceDefinition = async (id: string) => {
-        const { error } = await supabase.from('service_definitions').delete().eq('id', id);
+        const { error } = await getSupabase().from('service_definitions').delete().eq('id', id);
         if (error) throw error;
         await fetchData();
     };
@@ -386,13 +386,13 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (info.globalDiscount !== undefined) dbData.global_discount = info.globalDiscount;
 
         // Assuming a single record for company info
-        const { data: existing } = await supabase.from('company_info').select('id').limit(1).maybeSingle();
+        const { data: existing } = await getSupabase().from('company_info').select('id').limit(1).maybeSingle();
 
         if (existing) {
-            const { error } = await supabase.from('company_info').update(dbData).eq('id', existing.id);
+            const { error } = await getSupabase().from('company_info').update(dbData).eq('id', existing.id);
             if (error) throw error;
         } else {
-            const { error } = await supabase.from('company_info').insert(dbData);
+            const { error } = await getSupabase().from('company_info').insert(dbData);
             if (error) throw error;
         }
         await fetchData();

@@ -1,11 +1,24 @@
 import { createClient } from '@supabase/supabase-js';
 import { Database } from '../types/supabase';
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
+let supabaseCached: ReturnType<typeof createClient<Database>> | null = null;
 
-if (!supabaseUrl || !supabaseAnonKey) {
-    console.error('ERRO CRÍTICO: Variáveis de ambiente do Supabase não configuradas no Vercel!');
-}
+export const getSupabase = () => {
+    if (supabaseCached) return supabaseCached;
 
-export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey);
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
+    const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
+
+    if (!supabaseUrl || !supabaseAnonKey) {
+        console.error('ALERTA: Variáveis de ambiente do Supabase faltando!');
+    }
+
+    supabaseCached = createClient<Database>(supabaseUrl, supabaseAnonKey);
+    return supabaseCached;
+};
+
+// Mantendo suporte para importação direta, mas o getSupabase é mais seguro
+export const supabase = createClient<Database>(
+    import.meta.env.VITE_SUPABASE_URL || '',
+    import.meta.env.VITE_SUPABASE_ANON_KEY || ''
+);
